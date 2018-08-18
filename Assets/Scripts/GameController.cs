@@ -7,13 +7,25 @@ public class GameController : MonoBehaviour {
     [SerializeField]
     private MovingPlatformsManager MovingPlatformsManager;
     public MovingPlatformsManager movingPlatformsManager { get { return MovingPlatformsManager; } }
-    // Use this for initialization
+    [SerializeField]
+    private Player Player;
+    private Player player { get { return Player; } }
+    [SerializeField]
+    private CameraController CameraController;
+    private CameraController cameraController { get { return CameraController; } }
+
     void Start () {
 		
 	}
 	
-	// Update is called once per frame
 	void Update () {
-        movingPlatformsManager.UpdatePlatforms();
+        MovingPlatformsManager.UpdatePlatforms();
+        Player.UpdatePlayerMovement();
+        CameraController.UpdateCameraInput();
 	}
+
+    private void LateUpdate()
+    {
+        CameraController.LateUpdateCameraTransform(player.gameObject.transform);
+    }
 }
