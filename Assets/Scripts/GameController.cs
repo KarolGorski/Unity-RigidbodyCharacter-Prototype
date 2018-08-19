@@ -20,7 +20,7 @@ public class GameController : MonoBehaviour {
 	
 	void Update () {
         MovingPlatformsManager.UpdatePlatforms();
-        Player.UpdatePlayerMovement();
+        Player.UpdatePlayerMovement(CameraController.gameObject.transform);
         CameraController.UpdateCameraInput();
 	}
 

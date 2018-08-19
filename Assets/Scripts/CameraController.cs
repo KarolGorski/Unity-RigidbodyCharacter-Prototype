@@ -8,13 +8,13 @@ public class CameraController : MonoBehaviour {
     float distance;
 
     float currentX=0f, currentY=0f;
-    float yMinAngle = 0f;
+    float yMinAngle = -50f;
     float yMaxAngle = 50f;
     
 	public void UpdateCameraInput()
     {
         currentX += Input.GetAxis("Mouse X");
-        currentY += Input.GetAxis("Mouse Y");
+        currentY -= Input.GetAxis("Mouse Y");
         currentY = Mathf.Clamp(currentY, yMinAngle, yMaxAngle);
     }
 
