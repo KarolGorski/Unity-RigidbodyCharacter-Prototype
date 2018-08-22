@@ -49,4 +49,20 @@ public class PlatformMovement : MonoBehaviour {
         inMovement = false;
         yield return null;
     }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if(collision.gameObject.name.Equals("Player"))
+        {
+            collision.transform.parent = transform;
+            Debug.Log("Parenting");
+        }
+
+    }
+
+    private void OnCollisionExit(Collision collision)
+    {
+        collision.transform.parent = null;
+        Debug.Log("Unparenting");
+    }
 }

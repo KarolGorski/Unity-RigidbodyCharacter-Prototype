@@ -9,7 +9,7 @@ public class CameraController : MonoBehaviour {
 
     float currentX=0f, currentY=0f;
     float yMinAngle = -50f;
-    float yMaxAngle = 50f;
+    float yMaxAngle = 0f;
     
 	public void UpdateCameraInput()
     {

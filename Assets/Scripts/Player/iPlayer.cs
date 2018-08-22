@@ -2,15 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class iPlayer : MonoBehaviour {
+public interface iPlayer {
 
-	// Use this for initialization
-	void Start () {
-		
-	}
+    void PlayerStateChanged(string playerState);
 	
-	// Update is called once per frame
-	void Update () {
-		
-	}
 }

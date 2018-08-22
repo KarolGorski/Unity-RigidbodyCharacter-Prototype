@@ -4,28 +4,103 @@ using UnityEngine;
 
 public class Player : MonoBehaviour {
 
+    public iPlayer listener;
     [SerializeField]
-    float movementForce;
+    private Rigidbody PlayerRigidbody;
+    public Rigidbody playerRigidbody { get { return PlayerRigidbody; } }
     [SerializeField]
-    float jumpForce;
+    private Collider PlayerCollider;
+    public Collider playerCollider { get { return PlayerCollider; } }
     [SerializeField]
-    Rigidbody playerRigidbody;
+    LayerMask maskToRaycast;
+    private RaycastHit downHitInfo;
+    public Vector3 forwardDirection { get; private set; }
+    public string playerState { get; private set; }
+    public bool isGrounded { get; private set; }
+    public bool isOnBorder { get; private set; }
+    public bool isBuffed { get; private set; }
+    [SerializeField]
+    ParticleSystem playerBuffedParticle;
+    [SerializeField]
+    ShootingSystem shootingSystem;
+    BasePlayerMovementStyle movementStyle;
 
-    
-    public void UpdatePlayerMovement(Transform cameraTransform) // (MovementStyle)
+    private void Start()
     {
-       
-        float hor = Input.GetAxis("Horizontal");
-        float ver = Input.GetAxis("Vertical");
-        float jmp = 0;
-        if (Input.GetKeyDown(KeyCode.Space))
-            jmp = jumpForce;
-
-        Debug.Log(cameraTransform.forward.ToString() + " "+ cameraTransform.right.ToString() + " " + cameraTransform.up.ToString());
-
-        playerRigidbody.AddForce(new Vector3(cameraTransform.forward.x, 0f, cameraTransform.forward.z) * ver * movementForce);
-        playerRigidbody.AddForce(cameraTransform.right * hor * movementForce);
-        playerRigidbody.AddForce(new Vector3(0f,cameraTransform.up.y,0f) * jmp);
-        
+        movementStyle = new BasePlayerMovementStyle();
     }
+
+    public void UpdatePlayer()
+    {
+        CheckIfGrounded();
+        CheckGroundInFrontOfPlayer();
+        CalculateForwardDirection();  
+    }
+
+    public void UpdatePlayerPhysics()
+    {
+        
+        movementStyle.ExecuteMovement(this);
+        shootingSystem.Shoot(this);
+    }
+
+    public void ChangeMovementStyle(BasePlayerMovementStyle newStyle)
+    {
+        movementStyle = newStyle;
+    }
+
+    public void ChangePlayerState(string playerState)
+    {
+        if ((playerState.Equals(Keys.PlayerStates.RUNNING) ||
+            playerState.Equals(Keys.PlayerStates.MOVING)) &&
+            this.playerState.Equals(Keys.PlayerStates.IN_AIR) &&
+            playerRigidbody.velocity.y<0)
+            return;
+        this.playerState = playerState;
+        listener.PlayerStateChanged(this.playerState);
+    }
+
+    void CalculateForwardDirection()
+    {
+        forwardDirection = Vector3.Cross(transform.right, downHitInfo.normal);
+    }
+
+    void CheckIfGrounded()
+    {
+        Vector3 rayStart = transform.position;
+        //Debug.DrawRay(rayStart, Vector3.down * playerCollider.bounds.size.y, Color.red, 2f);
+
+        isGrounded = Physics.Raycast(rayStart, Vector3.down, playerCollider.bounds.size.y, maskToRaycast);
+        if(isGrounded && playerRigidbody.velocity.Equals(Vector3.zero))
+            ChangePlayerState(Keys.PlayerStates.STANDING);
+        if (!isGrounded && playerRigidbody.velocity.y < 0)
+            ChangePlayerState(Keys.PlayerStates.IN_AIR);
+    }
+
+    void CheckGroundInFrontOfPlayer()
+    {
+        Vector3 rayStart = transform.position + transform.forward * playerCollider.bounds.size.z;
+        //Debug.DrawRay(rayStart, Vector3.down* playerCollider.bounds.size.y*1.5f, Color.green, 5f);
+        isOnBorder = !Physics.Raycast(rayStart, Vector3.down, out downHitInfo, playerCollider.bounds.size.y*1.5f, maskToRaycast) && isGrounded;
+    }
+
+
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (isBuffed) return;
+        if (other.gameObject.name.Contains("Buff"))
+            StartCoroutine(BuffTriggered());
+    }
+
+    IEnumerator BuffTriggered()
+    {
+        isBuffed = true;
+        playerBuffedParticle.Play();
+        yield return new WaitForSeconds(4f);
+        playerBuffedParticle.Stop();
+        isBuffed = false;
+
+    }
+
 }
